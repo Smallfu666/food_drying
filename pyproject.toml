@@ -1,0 +1,12 @@
+[project]
+name = "food-drying-gui"
+version = "0.1.0"
+description = "Desktop control panel for an educational fruit drying Edge AI system."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "opencv-python>=4.10.0",
+    "PySide6>=6.7.0",
+    "pyserial>=3.5",
+    "ultralytics>=8.3.0",
+]
