@@ -332,6 +332,10 @@ dependencies = [
     { name = "opencv-python" },
     { name = "pyserial" },
     { name = "pyside6" },
+]
+
+[package.optional-dependencies]
+yolo = [
     { name = "ultralytics" },
 ]
 
@@ -340,11 +344,9 @@ requires-dist = [
     { name = "opencv-python", specifier = ">=4.10.0" },
     { name = "pyserial", specifier = ">=3.5" },
     { name = "pyside6", specifier = ">=6.7.0" },
-    { name = "ultralytics", specifier = ">=8.3.0" },
+    { name = "ultralytics", marker = "extra == 'yolo'", specifier = ">=8.3.0" },
 ]
-
-[package.metadata.requires-dev]
-dev = []
+provides-extras = ["yolo"]
 
 [[package]]
 name = "fsspec"

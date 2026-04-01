@@ -42,6 +42,12 @@ pyproject.toml
 uv sync
 ```
 
+如果你要使用自己的 `.pt` 模型做 YOLOv8 推論，請改成：
+
+```bash
+uv sync --extra yolo
+```
+
 2. 啟動程式
 
 ```bash
@@ -59,12 +65,21 @@ uv sync
 ./.venv/bin/python main.py
 ```
 
+如果 Raspberry Pi 5 上要使用 `.pt` 模型推論，請改成：
+
+```bash
+uv sync --extra yolo
+./.venv/bin/python main.py
+```
+
 注意事項：
 
 - 需要在有桌面環境的情況下執行，因為相機預覽與推論結果是用 OpenCV 視窗顯示
 - 預設 UART port 是 `/dev/serial0`
 - 如果 MCU 使用其他序列埠，可在 GUI 中直接修改
 - 目前 `.pt` 會用本地 YOLOv8 backend 跑，`.hef` backend 介面已預留但尚未實作 Hailo-10H runtime
+- 如果只想先測 GUI、相機與 Mock mode，用 `uv sync` 即可
+- 如果要真的載入 `.pt` 模型，才需要 `uv sync --extra yolo`
 
 ## 如何使用
 
