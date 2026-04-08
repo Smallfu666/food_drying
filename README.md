@@ -17,7 +17,7 @@
 - OpenCV pop-out 相機預覽視窗
 - 背景執行緒資料收集
 - 依小時切分的資料集輸出結構
-- UART `START` / `STOP` / PWM 控制
+- UART `on` / `off` / PWM 控制
 - 掃描 `models/` 內的 `.pt` 與未來 `.hef`
 - 內建 `Mock` 推論模式，沒有模型也能先測完整流程
 
@@ -75,7 +75,7 @@ uv sync --extra yolo
 注意事項：
 
 - 需要在有桌面環境的情況下執行，因為相機預覽與推論結果是用 OpenCV 視窗顯示
-- 預設 UART port 是 `/dev/serial0`
+- 預設 UART port 是 `/dev/ttyAMA0`
 - 如果 MCU 使用其他序列埠，可在 GUI 中直接修改
 - 目前 `.pt` 會用本地 YOLOv8 backend 跑，`.hef` backend 介面已預留但尚未實作 Hailo-10H runtime
 - 如果只想先測 GUI、相機與 Mock mode，用 `uv sync` 即可
@@ -87,9 +87,11 @@ uv sync --extra yolo
 
 - `開啟相機預覽`：開啟 OpenCV 視窗，檢查鏡頭角度與位置
 - `連線 UART`：連接 MCU
-- `送出 START`：送出 `START`
-- `送出 STOP`：送出 `STOP`
+- `送出 ON`：送出 `on`
+- `送出 OFF`：送出 `off`
 - `風扇速度`：拖動後放開，送出一次 PWM 指令
+
+UART 目前以「命令成功送出」作為主要成功條件；設備若沒有回傳字串，也可能屬於正常行為。
 
 ### 2. 資料收集
 

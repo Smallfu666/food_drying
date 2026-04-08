@@ -2,7 +2,12 @@ from __future__ import annotations
 
 from typing import Iterable
 
-from app.core.config import DEFAULT_SERIAL_PORT, SERIAL_BAUDRATE
+from app.core.config import (
+    DEFAULT_SERIAL_PORT,
+    SERIAL_BAUDRATE,
+    UART_OFF_COMMAND,
+    UART_ON_COMMAND,
+)
 from app.core.logger import AppLogger
 
 try:
@@ -64,10 +69,10 @@ class UARTService:
         self.logger.info(f"[UART] 已送出：{message}")
 
     def send_start(self) -> None:
-        self.send("START")
+        self.send(UART_ON_COMMAND)
 
     def send_stop(self) -> None:
-        self.send("STOP")
+        self.send(UART_OFF_COMMAND)
 
     def send_fan_pwm(self, pwm_value: int) -> None:
         clipped_value = max(0, min(100, pwm_value))

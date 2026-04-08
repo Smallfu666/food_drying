@@ -46,7 +46,7 @@ class HardwarePanel(QFrame):
         port_label = QLabel("序列埠")
         port_row.addWidget(port_label)
         self.port_input = QLineEdit(DEFAULT_SERIAL_PORT)
-        self.port_input.setPlaceholderText("/dev/serial0")
+        self.port_input.setPlaceholderText("/dev/ttyAMA0")
         port_row.addWidget(self.port_input)
         layout.addLayout(port_row)
 
@@ -58,9 +58,9 @@ class HardwarePanel(QFrame):
         layout.addLayout(button_row)
 
         dryer_row = QHBoxLayout()
-        self.start_button = QPushButton("送出 START")
+        self.start_button = QPushButton("送出 ON")
         self.start_button.setProperty("primary", True)
-        self.stop_button = QPushButton("送出 STOP")
+        self.stop_button = QPushButton("送出 OFF")
         self.stop_button.setProperty("danger", True)
         dryer_row.addWidget(self.start_button)
         dryer_row.addWidget(self.stop_button)
