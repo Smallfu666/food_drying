@@ -93,6 +93,46 @@ uv sync --extra yolo
 
 UART 目前以「命令成功送出」作為主要成功條件；設備若沒有回傳字串，也可能屬於正常行為。
 
+### UART 實機使用方式
+
+RPi 5 目前採用：
+
+- Port: `/dev/ttyAMA0`
+- Baudrate: `9600`
+- Format: `8N1`
+- Commands: `on` / `off`
+
+接線方式：
+
+- RPi Pin `6` -> 對方 `GND`
+- RPi Pin `8` -> 對方 `RX`
+- RPi Pin `10` -> 對方 `TX`
+
+在 GUI 中：
+
+1. 將序列埠設為 `/dev/ttyAMA0`
+2. 點 `連線 UART`
+3. 點 `送出 ON` 或 `送出 OFF`
+
+如果只是要先在終端測試 UART，可使用：
+
+```bash
+./.venv/bin/python scripts/uart_probe.py --port /dev/ttyAMA0 --command on
+./.venv/bin/python scripts/uart_probe.py --port /dev/ttyAMA0 --command off
+```
+
+如果設備需要換行，可再試：
+
+```bash
+./.venv/bin/python scripts/uart_probe.py --port /dev/ttyAMA0 --command on --newline
+```
+
+如果你要把「沒有回應」也視為失敗，再加：
+
+```bash
+./.venv/bin/python scripts/uart_probe.py --port /dev/ttyAMA0 --command on --require-response
+```
+
 ### 2. 資料收集
 
 - 設定 `持續時間（小時）`
