@@ -23,9 +23,18 @@ class UARTService:
         self.logger = logger
         self._serial_connection = None
         self._simulation_mode = serial is None
+        self._last_port = DEFAULT_SERIAL_PORT
 
         if self._simulation_mode:
             self.logger.warning("未載入 pyserial，UART 會以模擬模式執行。")
+
+    @property
+    def is_connected(self) -> bool:
+        return bool(self._serial_connection and self._serial_connection.is_open)
+
+    @property
+    def last_port(self) -> str:
+        return self._last_port
 
     def available_ports(self) -> list[str]:
         ports: Iterable = list_ports.comports() if list_ports else []
@@ -33,6 +42,7 @@ class UARTService:
 
     def connect(self, port: str | None = None, baudrate: int = SERIAL_BAUDRATE) -> bool:
         selected_port = port or DEFAULT_SERIAL_PORT
+        self._last_port = selected_port
 
         if serial is None:
             self._simulation_mode = True
@@ -59,20 +69,27 @@ class UARTService:
             self.logger.info("UART 已中斷連線。")
         self._serial_connection = None
 
-    def send(self, payload: str) -> None:
+    def send(self, payload: str) -> bool:
         message = payload.strip()
         if self._simulation_mode or not self._serial_connection or not self._serial_connection.is_open:
             self.logger.info(f"[SIM UART] {message}")
-            return
+            return False
 
         self._serial_connection.write(f"{message}\n".encode("utf-8"))
         self.logger.info(f"[UART] 已送出：{message}")
+        return True
 
     def send_start(self) -> None:
         self.send(UART_ON_COMMAND)
 
     def send_stop(self) -> None:
         self.send(UART_OFF_COMMAND)
+
+    def power_on(self) -> bool:
+        return self.send(UART_ON_COMMAND)
+
+    def power_off(self) -> bool:
+        return self.send(UART_OFF_COMMAND)
 
     def send_fan_pwm(self, pwm_value: int) -> None:
         clipped_value = max(0, min(100, pwm_value))

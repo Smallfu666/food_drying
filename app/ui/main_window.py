@@ -113,8 +113,8 @@ class MainWindow(QMainWindow):
         self.hardware_panel.preview_button.clicked.connect(self._toggle_preview)
         self.hardware_panel.connect_button.clicked.connect(self._connect_uart)
         self.hardware_panel.refresh_ports_button.clicked.connect(self._refresh_serial_port_hint)
-        self.hardware_panel.start_button.clicked.connect(self.uart_service.send_start)
-        self.hardware_panel.stop_button.clicked.connect(self.uart_service.send_stop)
+        self.hardware_panel.start_button.clicked.connect(self._send_power_on)
+        self.hardware_panel.stop_button.clicked.connect(self._send_power_off)
         self.hardware_panel.fan_slider.valueChanged.connect(
             lambda value: self.hardware_panel.fan_value_label.setText(str(value))
         )
@@ -133,6 +133,8 @@ class MainWindow(QMainWindow):
     def _initialize_button_states(self) -> None:
         self.collection_panel.stop_button.setEnabled(False)
         self.inference_panel.stop_button.setEnabled(False)
+        self._update_uart_status("未連線")
+        self._update_power_status("待命")
 
     def _toggle_theme(self, checked: bool) -> None:
         if checked != (self.theme_manager.current_theme.name == "dark"):
@@ -149,7 +151,13 @@ class MainWindow(QMainWindow):
 
     def _connect_uart(self) -> None:
         port = self.hardware_panel.port_input.text().strip()
-        self.uart_service.connect(port or None)
+        connected = self.uart_service.connect(port or None)
+        if connected:
+            self._update_uart_status(f"已連線：{self.uart_service.last_port}")
+            self._update_power_status("可送出開關機命令")
+        else:
+            self._update_uart_status(f"未連線，請檢查：{self.uart_service.last_port}")
+            self._update_power_status("未連線")
 
     def _toggle_preview(self) -> None:
         if self.camera_service.preview_running():
@@ -160,6 +168,26 @@ class MainWindow(QMainWindow):
 
     def _on_preview_state_changed(self, running: bool) -> None:
         self.hardware_panel.preview_button.setText("關閉相機預覽" if running else "開啟相機預覽")
+
+    def _update_uart_status(self, text: str) -> None:
+        self.hardware_panel.uart_status_label.setText(f"UART 狀態：{text}")
+
+    def _update_power_status(self, text: str) -> None:
+        self.hardware_panel.power_status_label.setText(f"控制狀態：{text}")
+
+    def _send_power_on(self) -> None:
+        sent = self.uart_service.power_on()
+        if sent:
+            self._update_power_status("已送出開啟機器命令")
+        else:
+            self._update_power_status("命令未送出，請先確認 UART 連線")
+
+    def _send_power_off(self) -> None:
+        sent = self.uart_service.power_off()
+        if sent:
+            self._update_power_status("已送出關閉機器命令")
+        else:
+            self._update_power_status("命令未送出，請先確認 UART 連線")
 
     def _send_fan_pwm(self) -> None:
         self.uart_service.send_fan_pwm(self.hardware_panel.fan_slider.value())

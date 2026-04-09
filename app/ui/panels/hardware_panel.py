@@ -11,7 +11,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
 )
 
-from app.core.config import DEFAULT_SERIAL_PORT
+from app.core.config import DEFAULT_SERIAL_PORT, SERIAL_BAUDRATE, UART_FORMAT
 
 
 class HardwarePanel(QFrame):
@@ -42,6 +42,11 @@ class HardwarePanel(QFrame):
         uart_title.setObjectName("sectionTitle")
         layout.addWidget(uart_title)
 
+        uart_hint = QLabel(f"預設：{DEFAULT_SERIAL_PORT} / {SERIAL_BAUDRATE} {UART_FORMAT} / on-off")
+        uart_hint.setObjectName("hintText")
+        uart_hint.setWordWrap(True)
+        layout.addWidget(uart_hint)
+
         port_row = QHBoxLayout()
         port_label = QLabel("序列埠")
         port_row.addWidget(port_label)
@@ -49,6 +54,11 @@ class HardwarePanel(QFrame):
         self.port_input.setPlaceholderText("/dev/ttyAMA0")
         port_row.addWidget(self.port_input)
         layout.addLayout(port_row)
+
+        self.uart_status_label = QLabel("UART 狀態：未連線")
+        self.uart_status_label.setObjectName("hintText")
+        self.uart_status_label.setWordWrap(True)
+        layout.addWidget(self.uart_status_label)
 
         button_row = QHBoxLayout()
         self.connect_button = QPushButton("連線 UART")
@@ -58,13 +68,18 @@ class HardwarePanel(QFrame):
         layout.addLayout(button_row)
 
         dryer_row = QHBoxLayout()
-        self.start_button = QPushButton("送出 ON")
+        self.start_button = QPushButton("開啟機器")
         self.start_button.setProperty("primary", True)
-        self.stop_button = QPushButton("送出 OFF")
+        self.stop_button = QPushButton("關閉機器")
         self.stop_button.setProperty("danger", True)
         dryer_row.addWidget(self.start_button)
         dryer_row.addWidget(self.stop_button)
         layout.addLayout(dryer_row)
+
+        self.power_status_label = QLabel("控制狀態：待命")
+        self.power_status_label.setObjectName("hintText")
+        self.power_status_label.setWordWrap(True)
+        layout.addWidget(self.power_status_label)
 
         fan_title = QLabel("風扇速度")
         fan_title.setObjectName("sectionTitle")
