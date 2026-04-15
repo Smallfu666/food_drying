@@ -53,9 +53,9 @@ DARK_THEME = ThemePalette(
     text="#E5EEF8",
     muted_text="#9FB1C5",
     border="#334155",
-    accent="#14B8A6",
-    accent_hover="#2DD4BF",
-    accent_pressed="#0F766E",
+    accent="#F59E0B",
+    accent_hover="#FBBF24",
+    accent_pressed="#D97706",
     subtle_hover="#1E293B",
     input_bg="#0B1120",
     danger="#FB7185",
@@ -80,7 +80,7 @@ class ThemeManager:
                 background-color: transparent;
                 color: {theme.text};
                 font-family: "Noto Sans CJK TC", "Noto Sans TC", "Source Han Sans TW", "PingFang TC", "Microsoft JhengHei", "DejaVu Sans";
-                font-size: 14px;
+                font-size: 16px;
             }}
             QMainWindow {{
                 background-color: {theme.window};
@@ -116,39 +116,39 @@ class ThemeManager:
             QLabel#heroBadge {{
                 background-color: {theme.panel_alt};
                 border: 1px solid {theme.border};
-                border-radius: 12px;
+                border-radius: 14px;
                 color: {theme.accent_pressed};
-                font-size: 12px;
+                font-size: 14px;
                 font-weight: 700;
-                padding: 6px 10px;
+                padding: 8px 12px;
             }}
             QLabel#stepBadge {{
                 background-color: {theme.accent};
-                border-radius: 14px;
+                border-radius: 16px;
                 color: white;
-                font-size: 12px;
+                font-size: 14px;
                 font-weight: 800;
-                padding: 6px 10px;
+                padding: 8px 12px;
             }}
             QLabel#titleLabel {{
-                font-size: 28px;
+                font-size: 32px;
                 font-weight: 800;
             }}
             QLabel#sectionTitle {{
-                font-size: 20px;
+                font-size: 24px;
                 font-weight: 800;
             }}
             QLabel#subsectionTitle {{
-                font-size: 15px;
+                font-size: 18px;
                 font-weight: 800;
             }}
             QLabel#hintText {{
                 color: {theme.muted_text};
-                font-size: 12px;
+                font-size: 14px;
             }}
             QLabel#fieldLabel {{
                 color: {theme.muted_text};
-                font-size: 12px;
+                font-size: 14px;
                 font-weight: 700;
             }}
             QLabel#valueChip {{
@@ -176,16 +176,17 @@ class ThemeManager:
             QPushButton {{
                 background-color: {theme.panel_alt};
                 border: 1px solid {theme.border};
-                border-radius: 14px;
-                padding: 12px 16px;
+                border-radius: 16px;
+                padding: 16px 20px;
+                font-size: 16px;
                 font-weight: 700;
             }}
             QPushButton:hover {{
                 background-color: {theme.subtle_hover};
             }}
             QPushButton:pressed {{
-                padding-top: 11px;
-                padding-bottom: 9px;
+                padding-top: 15px;
+                padding-bottom: 13px;
             }}
             QPushButton[primary="true"] {{
                 background-color: {theme.accent};
@@ -217,8 +218,9 @@ class ThemeManager:
             QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox, QPlainTextEdit {{
                 background-color: {theme.input_bg};
                 border: 1px solid {theme.border};
-                border-radius: 14px;
-                padding: 11px 12px;
+                border-radius: 16px;
+                padding: 14px 16px;
+                font-size: 16px;
                 selection-background-color: {theme.accent};
             }}
             QSpinBox::up-button,
@@ -230,7 +232,7 @@ class ThemeManager:
             }}
             QComboBox::drop-down {{
                 border: none;
-                width: 28px;
+                width: 36px;
             }}
             QComboBox QAbstractItemView {{
                 background-color: {theme.panel};
@@ -239,24 +241,25 @@ class ThemeManager:
                 selection-color: white;
             }}
             QSlider::groove:horizontal {{
-                height: 6px;
+                height: 8px;
                 background: {theme.border};
-                border-radius: 3px;
+                border-radius: 4px;
             }}
             QSlider::handle:horizontal {{
                 background: {theme.accent};
-                width: 18px;
-                margin: -6px 0;
-                border-radius: 9px;
+                width: 28px;
+                margin: -10px 0;
+                border-radius: 14px;
             }}
             QCheckBox {{
-                spacing: 8px;
+                spacing: 12px;
+                font-size: 16px;
                 font-weight: 600;
             }}
             QCheckBox::indicator {{
-                width: 22px;
-                height: 22px;
-                border-radius: 11px;
+                width: 28px;
+                height: 28px;
+                border-radius: 14px;
                 border: 1px solid {theme.border};
                 background-color: {theme.panel_alt};
             }}
@@ -269,16 +272,16 @@ class ThemeManager:
                 font-size: 12px;
             }}
             QScrollBar:vertical {{
-                width: 16px;
+                width: 24px;
                 background: {theme.panel_alt};
                 margin: 0;
                 border-left: 1px solid {theme.border};
             }}
             QScrollBar::handle:vertical {{
                 background: {theme.muted_text};
-                border-radius: 7px;
-                margin: 3px;
-                min-height: 24px;
+                border-radius: 10px;
+                margin: 4px;
+                min-height: 36px;
             }}
             QScrollBar::handle:vertical:hover {{
                 background: {theme.accent};
