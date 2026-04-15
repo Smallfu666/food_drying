@@ -76,6 +76,13 @@ class ThemeManager:
             QMainWindow {{
                 background-color: {theme.window};
             }}
+            QScrollArea#mainScrollArea {{
+                border: none;
+                background-color: {theme.window};
+            }}
+            QScrollArea#mainScrollArea > QWidget > QWidget {{
+                background-color: {theme.window};
+            }}
             QFrame#panel {{
                 background-color: {theme.panel};
                 border: 1px solid {theme.border};
@@ -179,14 +186,33 @@ class ThemeManager:
                 font-size: 12px;
             }}
             QScrollBar:vertical {{
-                width: 12px;
-                background: transparent;
-                margin: 6px;
+                width: 16px;
+                background: {theme.panel_alt};
+                margin: 0;
+                border-left: 1px solid {theme.border};
             }}
             QScrollBar::handle:vertical {{
-                background: {theme.border};
-                border-radius: 6px;
+                background: {theme.muted_text};
+                border-radius: 7px;
+                margin: 3px;
                 min-height: 24px;
+            }}
+            QScrollBar::handle:vertical:hover {{
+                background: {theme.accent};
+            }}
+            QScrollBar::add-line:vertical,
+            QScrollBar::sub-line:vertical {{
+                height: 0;
+                border: none;
+                background: transparent;
+            }}
+            QScrollBar::add-page:vertical,
+            QScrollBar::sub-page:vertical {{
+                background: transparent;
+            }}
+            QScrollBar:horizontal {{
+                height: 0;
+                background: transparent;
             }}
             """
         )

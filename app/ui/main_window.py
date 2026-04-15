@@ -12,11 +12,14 @@ from PySide6.QtGui import QDesktopServices, QImage, QPixmap
 from PySide6.QtWidgets import (
     QApplication,
     QCheckBox,
+    QFrame,
     QHBoxLayout,
     QLabel,
+    QLayout,
     QMainWindow,
     QMessageBox,
     QScrollArea,
+    QSizePolicy,
     QWidget,
     QVBoxLayout,
 )
@@ -70,11 +73,17 @@ class MainWindow(QMainWindow):
 
     def _build_ui(self) -> None:
         scroll_area = QScrollArea()
+        scroll_area.setObjectName("mainScrollArea")
         scroll_area.setWidgetResizable(True)
+        scroll_area.setFrameShape(QFrame.Shape.NoFrame)
+        scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+        scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
 
         root = QWidget()
         root.setMinimumWidth(920)
+        root.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
         root_layout = QVBoxLayout(root)
+        root_layout.setSizeConstraint(QLayout.SizeConstraint.SetMinimumSize)
         root_layout.setContentsMargins(28, 24, 28, 24)
         root_layout.setSpacing(20)
 
@@ -104,7 +113,6 @@ class MainWindow(QMainWindow):
         root_layout.addWidget(self.hardware_panel)
         root_layout.addWidget(self.collection_panel)
         root_layout.addWidget(self.inference_panel)
-        root_layout.addStretch()
 
         scroll_area.setWidget(root)
         self.setCentralWidget(scroll_area)
