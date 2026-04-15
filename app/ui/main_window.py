@@ -45,6 +45,9 @@ class MainWindowSignals(QObject):
 
 
 class MainWindow(QMainWindow):
+    MIN_CONTENT_WIDTH = 860
+    MAX_CONTENT_WIDTH = 1180
+
     def __init__(self) -> None:
         super().__init__()
         self.setWindowTitle(WINDOW_TITLE)
@@ -62,6 +65,7 @@ class MainWindow(QMainWindow):
         self.inference_service = InferenceService(self.camera_service, self.logger)
         self.signals = MainWindowSignals()
         self.preview_window: CameraPreviewWindow | None = None
+        self.content_column: QWidget | None = None
         self.collection_running = False
         self.inference_running = False
 
@@ -85,13 +89,13 @@ class MainWindow(QMainWindow):
         root.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
         root_layout = QVBoxLayout(root)
         root_layout.setSizeConstraint(QLayout.SizeConstraint.SetMinimumSize)
-        root_layout.setContentsMargins(28, 28, 28, 28)
+        root_layout.setContentsMargins(14, 18, 14, 18)
         root_layout.setSpacing(0)
 
         content = QWidget()
+        self.content_column = content
         content.setObjectName("contentColumn")
-        content.setMinimumWidth(860)
-        content.setMaximumWidth(980)
+        content.setFixedWidth(self.MIN_CONTENT_WIDTH)
         content.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
         content_layout = QVBoxLayout(content)
         content_layout.setContentsMargins(0, 0, 0, 0)
@@ -372,6 +376,20 @@ class MainWindow(QMainWindow):
         self.inference_service.stop_inference()
         self.uart_service.disconnect()
         super().closeEvent(event)
+
+    def resizeEvent(self, event) -> None:  # noqa: N802
+        super().resizeEvent(event)
+        self._resize_content_column()
+
+    def _resize_content_column(self) -> None:
+        if self.content_column is None:
+            return
+        viewport_width = max(0, self.width() - 56)
+        content_width = max(
+            self.MIN_CONTENT_WIDTH,
+            min(self.MAX_CONTENT_WIDTH, viewport_width),
+        )
+        self.content_column.setFixedWidth(content_width)
 
 
 def run() -> None:
