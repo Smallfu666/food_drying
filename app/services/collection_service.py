@@ -28,6 +28,8 @@ class DataCollectionService:
         duration_hours: float,
         interval_minutes: float,
         state_callback: Callable[[bool, str], None] | None = None,
+        frame_callback: Callable[[object], None] | None = None,
+        progress_callback: Callable[[int, str, str], None] | None = None,
     ) -> bool:
         if self.is_running():
             self.logger.warning("資料收集已經在執行中。")
@@ -40,7 +42,7 @@ class DataCollectionService:
         self._stop_event.clear()
         self._thread = threading.Thread(
             target=self._collection_loop,
-            args=(duration_hours, interval_minutes, state_callback),
+            args=(duration_hours, interval_minutes, state_callback, frame_callback, progress_callback),
             daemon=True,
         )
         self._thread.start()
@@ -54,6 +56,8 @@ class DataCollectionService:
         duration_hours: float,
         interval_minutes: float,
         state_callback: Callable[[bool, str], None] | None,
+        frame_callback: Callable[[object], None] | None,
+        progress_callback: Callable[[int, str, str], None] | None,
     ) -> None:
         started_at = datetime.now()
         self.current_dataset_dir = DATASETS_DIR / started_at.strftime("%Y-%m-%d_%H-%M-%S")
@@ -87,10 +91,15 @@ class DataCollectionService:
                 if not ok:
                     self.logger.warning("資料收集讀取影像失敗，本輪跳過。")
                 else:
+                    if frame_callback:
+                        frame_callback(frame.copy())
+
                     filename = hour_dir / f"capture_{now.strftime('%Y%m%d_%H%M%S')}_{capture_index:04d}.jpg"
                     success = cv2.imwrite(str(filename), frame)
                     if success:
                         self.logger.info(f"已儲存影像：{filename.name}")
+                        if progress_callback:
+                            progress_callback(capture_index, filename.name, now.strftime("%Y-%m-%d %H:%M:%S"))
                         capture_index += 1
                     else:
                         self.logger.error(f"儲存影像失敗：{filename}")

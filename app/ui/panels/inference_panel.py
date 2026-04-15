@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from PySide6.QtWidgets import (
+    QCheckBox,
     QComboBox,
     QFrame,
     QHBoxLayout,
@@ -53,11 +54,25 @@ class InferencePanel(QFrame):
         action_row.addWidget(self.stop_button)
         layout.addLayout(action_row)
 
+        self.debug_toggle = QCheckBox("顯示除錯資訊 / 系統狀態")
+        layout.addWidget(self.debug_toggle)
+
+        self.debug_frame = QFrame()
+        self.debug_frame.setObjectName("panel")
+        debug_layout = QVBoxLayout(self.debug_frame)
+        debug_layout.setContentsMargins(16, 16, 16, 16)
+        debug_layout.setSpacing(12)
+
         status_title = QLabel("系統狀態")
         status_title.setObjectName("sectionTitle")
-        layout.addWidget(status_title)
+        debug_layout.addWidget(status_title)
 
         self.status_log = QPlainTextEdit()
         self.status_log.setReadOnly(True)
         self.status_log.setPlaceholderText("系統狀態會顯示在這裡。")
-        layout.addWidget(self.status_log, 1)
+        self.status_log.setMinimumHeight(220)
+        debug_layout.addWidget(self.status_log)
+
+        self.debug_frame.setVisible(False)
+        self.debug_toggle.toggled.connect(self.debug_frame.setVisible)
+        layout.addWidget(self.debug_frame)

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import (
     QDoubleSpinBox,
     QFrame,
@@ -60,6 +61,17 @@ class CollectionPanel(QFrame):
         self.dataset_dir_label.setWordWrap(True)
         layout.addWidget(self.dataset_dir_label)
 
+        self.progress_label = QLabel("收集狀態：尚未開始")
+        self.progress_label.setObjectName("hintText")
+        self.progress_label.setWordWrap(True)
+        layout.addWidget(self.progress_label)
+
+        self.preview_label = QLabel("資料收集開始後會在這裡顯示即時畫面")
+        self.preview_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.preview_label.setMinimumHeight(280)
+        self.preview_label.setStyleSheet("border: 1px solid #D9E2EC; border-radius: 12px;")
+        layout.addWidget(self.preview_label)
+
         action_row = QHBoxLayout()
         self.start_button = QPushButton("開始收集資料")
         self.start_button.setProperty("primary", True)
@@ -77,3 +89,12 @@ class CollectionPanel(QFrame):
         layout.addLayout(utility_row)
 
         layout.addStretch()
+
+    def set_preview_pixmap(self, pixmap: QPixmap) -> None:
+        self.preview_label.setPixmap(
+            pixmap.scaled(
+                self.preview_label.size(),
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation,
+            )
+        )

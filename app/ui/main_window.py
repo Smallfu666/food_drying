@@ -6,8 +6,9 @@ import subprocess
 import webbrowser
 from pathlib import Path
 
+import cv2
 from PySide6.QtCore import QObject, Qt, QUrl, Signal
-from PySide6.QtGui import QDesktopServices
+from PySide6.QtGui import QDesktopServices, QImage, QPixmap
 from PySide6.QtWidgets import (
     QApplication,
     QCheckBox,
@@ -15,6 +16,7 @@ from PySide6.QtWidgets import (
     QLabel,
     QMainWindow,
     QMessageBox,
+    QScrollArea,
     QWidget,
     QVBoxLayout,
 )
@@ -35,6 +37,8 @@ from app.ui.panels.inference_panel import InferencePanel
 class MainWindowSignals(QObject):
     preview_changed = Signal(bool)
     collection_changed = Signal(bool, str)
+    collection_frame = Signal(object)
+    collection_progress = Signal(int, str, str)
     inference_changed = Signal(bool)
 
 
@@ -65,7 +69,11 @@ class MainWindow(QMainWindow):
         self.logger.info("系統已就緒。")
 
     def _build_ui(self) -> None:
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+
         root = QWidget()
+        root.setMinimumWidth(920)
         root_layout = QVBoxLayout(root)
         root_layout.setContentsMargins(28, 24, 28, 24)
         root_layout.setSpacing(20)
@@ -89,25 +97,25 @@ class MainWindow(QMainWindow):
         top_bar_layout.addWidget(self.theme_toggle, alignment=Qt.AlignmentFlag.AlignRight)
         root_layout.addWidget(top_bar)
 
-        content_layout = QHBoxLayout()
-        content_layout.setSpacing(18)
-
         self.hardware_panel = HardwarePanel()
         self.collection_panel = CollectionPanel()
         self.inference_panel = InferencePanel()
 
-        content_layout.addWidget(self.hardware_panel, 1)
-        content_layout.addWidget(self.collection_panel, 1)
-        content_layout.addWidget(self.inference_panel, 1)
+        root_layout.addWidget(self.hardware_panel)
+        root_layout.addWidget(self.collection_panel)
+        root_layout.addWidget(self.inference_panel)
+        root_layout.addStretch()
 
-        root_layout.addLayout(content_layout, 1)
-        self.setCentralWidget(root)
+        scroll_area.setWidget(root)
+        self.setCentralWidget(scroll_area)
 
     def _bind_events(self) -> None:
         self.logger.message_logged.connect(self.inference_panel.status_log.appendPlainText)
 
         self.signals.preview_changed.connect(self._on_preview_state_changed)
         self.signals.collection_changed.connect(self._on_collection_state_changed)
+        self.signals.collection_frame.connect(self._on_collection_frame)
+        self.signals.collection_progress.connect(self._on_collection_progress)
         self.signals.inference_changed.connect(self._on_inference_state_changed)
 
         self.theme_toggle.toggled.connect(self._toggle_theme)
@@ -207,6 +215,8 @@ class MainWindow(QMainWindow):
             duration_hours=self.collection_panel.duration_input.value(),
             interval_minutes=self.collection_panel.interval_input.value(),
             state_callback=self.signals.collection_changed.emit,
+            frame_callback=self.signals.collection_frame.emit,
+            progress_callback=self.signals.collection_progress.emit,
         )
         if not started:
             QMessageBox.warning(self, "無法開始", "資料收集目前無法啟動，請查看狀態訊息。")
@@ -214,8 +224,42 @@ class MainWindow(QMainWindow):
     def _on_collection_state_changed(self, running: bool, dataset_dir: str) -> None:
         self.collection_panel.start_button.setEnabled(not running)
         self.collection_panel.stop_button.setEnabled(running)
+        self.hardware_panel.preview_button.setEnabled(not running)
+        self.inference_panel.start_button.setEnabled(not running)
+        self.collection_panel.duration_input.setEnabled(not running)
+        self.collection_panel.interval_input.setEnabled(not running)
         if dataset_dir:
             self.collection_panel.dataset_dir_label.setText(f"目前資料夾：{dataset_dir}")
+        if running:
+            self.collection_panel.progress_label.setText("收集狀態：執行中，正在等待下一次儲存")
+        else:
+            self.collection_panel.progress_label.setText("收集狀態：已停止")
+
+    def _on_collection_frame(self, frame) -> None:
+        display_frame = self._resize_frame_for_preview(frame, max_width=760)
+        rgb_frame = cv2.cvtColor(display_frame, cv2.COLOR_BGR2RGB)
+        height, width, channels = rgb_frame.shape
+        bytes_per_line = channels * width
+        image = QImage(
+            rgb_frame.data,
+            width,
+            height,
+            bytes_per_line,
+            QImage.Format.Format_RGB888,
+        ).copy()
+        self.collection_panel.set_preview_pixmap(QPixmap.fromImage(image))
+
+    def _on_collection_progress(self, count: int, filename: str, timestamp: str) -> None:
+        self.collection_panel.progress_label.setText(
+            f"收集狀態：已儲存 {count} 張，最近一張：{filename}（{timestamp}）"
+        )
+
+    def _resize_frame_for_preview(self, frame, max_width: int):
+        height, width = frame.shape[:2]
+        if width <= max_width:
+            return frame
+        scale = max_width / width
+        return cv2.resize(frame, (int(width * scale), int(height * scale)))
 
     def _open_current_dataset_dir(self) -> None:
         dataset_dir = self.collection_service.current_dataset_dir or DATASETS_DIR
