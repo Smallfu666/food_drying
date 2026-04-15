@@ -13,9 +13,9 @@
 ## 功能
 
 - 單欄式可捲動桌面 GUI
-- 深色 / 淺色模式切換
+- 固定深色模式，適合 Raspberry Pi 桌面與教學現場投影
 - PySide6 pop-out 相機預覽視窗
-- 背景執行緒資料收集，並在資料收集區內顯示即時相機畫面
+- 背景執行緒資料收集，並在資料收集區內顯示固定尺寸即時相機畫面
 - 依小時切分的資料集輸出結構
 - UART `on` / `off` / PWM 控制
 - 掃描 `models/` 內的 `.pt` 與未來 `.hef`
@@ -58,7 +58,21 @@ uv sync --extra yolo
 
 1. 安裝 Python 3.11+ 與 `uv`
 2. 將整個專案複製到 Raspberry Pi 5
-3. 在專案目錄執行：
+3. 建議先安裝中文字體：
+
+```bash
+./scripts/install_rpi_fonts.sh
+```
+
+如果不想執行 script，也可以手動安裝：
+
+```bash
+sudo apt update
+sudo apt install -y fonts-noto-cjk fonts-noto-color-emoji
+fc-cache -fv
+```
+
+4. 在專案目錄執行：
 
 ```bash
 uv sync
@@ -75,6 +89,7 @@ uv sync --extra yolo
 注意事項：
 
 - 需要在有桌面環境的情況下執行，因為相機預覽與推論結果需要顯示視窗
+- UI 目前固定使用深色模式，不再提供切換
 - 預設 UART port 是 `/dev/ttyAMA0`
 - 如果 MCU 使用其他序列埠，可在 GUI 中直接修改
 - 目前 `.pt` 會用本地 YOLOv8 backend 跑，`.hef` backend 介面已預留但尚未實作 Hailo-10H runtime
@@ -91,6 +106,12 @@ uv sync --extra yolo
 - `顯示 UART / 風扇進階設定`：展開 UART 連線、掃描序列埠與風扇 PWM 控制
 
 UART 目前以「命令成功送出」作為主要成功條件；設備若沒有回傳字串，也可能屬於正常行為。
+
+防呆規則：
+
+- 資料收集執行中，不可按 `關閉機器`
+- 推論執行中，不可按 `關閉機器`
+- 需要先停止資料收集或推論，才能送出 `off`
 
 ### UART 實機使用方式
 

@@ -3,15 +3,19 @@ from __future__ import annotations
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import (
+    QAbstractSpinBox,
     QDoubleSpinBox,
     QFrame,
     QGridLayout,
     QHBoxLayout,
     QLabel,
     QPushButton,
-    QSizePolicy,
     QVBoxLayout,
 )
+
+
+PREVIEW_WIDTH = 800
+PREVIEW_HEIGHT = 450
 
 
 class CollectionPanel(QFrame):
@@ -53,6 +57,7 @@ class CollectionPanel(QFrame):
         self.duration_input.setSingleStep(0.5)
         self.duration_input.setValue(1.0)
         self.duration_input.setAlignment(Qt.AlignmentFlag.AlignRight)
+        self.duration_input.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
         parameter_grid.addWidget(duration_label, 0, 0)
         parameter_grid.addWidget(self.duration_input, 0, 1)
 
@@ -64,6 +69,7 @@ class CollectionPanel(QFrame):
         self.interval_input.setSingleStep(0.5)
         self.interval_input.setValue(5.0)
         self.interval_input.setAlignment(Qt.AlignmentFlag.AlignRight)
+        self.interval_input.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
         parameter_grid.addWidget(interval_label, 0, 2)
         parameter_grid.addWidget(self.interval_input, 0, 3)
         parameter_grid.setColumnStretch(1, 1)
@@ -83,15 +89,15 @@ class CollectionPanel(QFrame):
         self.preview_label = QLabel("資料收集開始後會在這裡顯示即時畫面")
         self.preview_label.setObjectName("cameraPreview")
         self.preview_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.preview_label.setMinimumHeight(320)
-        self.preview_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        layout.addWidget(self.preview_label)
+        self.preview_label.setFixedSize(PREVIEW_WIDTH, PREVIEW_HEIGHT)
+        layout.addWidget(self.preview_label, alignment=Qt.AlignmentFlag.AlignHCenter)
 
         action_row = QHBoxLayout()
         action_row.setSpacing(12)
         self.start_button = QPushButton("開始收集資料")
         self.start_button.setProperty("primary", True)
         self.stop_button = QPushButton("停止收集")
+        self.stop_button.setProperty("danger", True)
         action_row.addWidget(self.start_button)
         action_row.addWidget(self.stop_button)
         layout.addLayout(action_row)
@@ -112,3 +118,7 @@ class CollectionPanel(QFrame):
                 Qt.TransformationMode.SmoothTransformation,
             )
         )
+
+    def clear_preview(self) -> None:
+        self.preview_label.clear()
+        self.preview_label.setText("資料收集開始後會在這裡顯示即時畫面")

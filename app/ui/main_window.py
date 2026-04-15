@@ -11,7 +11,6 @@ from PySide6.QtCore import QObject, Qt, QUrl, Signal
 from PySide6.QtGui import QDesktopServices, QImage, QPixmap
 from PySide6.QtWidgets import (
     QApplication,
-    QCheckBox,
     QFrame,
     QHBoxLayout,
     QLabel,
@@ -63,6 +62,8 @@ class MainWindow(QMainWindow):
         self.inference_service = InferenceService(self.camera_service, self.logger)
         self.signals = MainWindowSignals()
         self.preview_window: CameraPreviewWindow | None = None
+        self.collection_running = False
+        self.inference_running = False
 
         self._build_ui()
         self._bind_events()
@@ -115,9 +116,6 @@ class MainWindow(QMainWindow):
         header.addWidget(subtitle)
         top_bar_layout.addLayout(header)
         top_bar_layout.addStretch()
-
-        self.theme_toggle = QCheckBox("深色模式")
-        top_bar_layout.addWidget(self.theme_toggle, alignment=Qt.AlignmentFlag.AlignRight)
         content_layout.addWidget(top_bar)
 
         self.hardware_panel = HardwarePanel()
@@ -140,8 +138,6 @@ class MainWindow(QMainWindow):
         self.signals.collection_frame.connect(self._on_collection_frame)
         self.signals.collection_progress.connect(self._on_collection_progress)
         self.signals.inference_changed.connect(self._on_inference_state_changed)
-
-        self.theme_toggle.toggled.connect(self._toggle_theme)
 
         self.hardware_panel.preview_button.clicked.connect(self._toggle_preview)
         self.hardware_panel.connect_button.clicked.connect(self._connect_uart)
@@ -168,11 +164,7 @@ class MainWindow(QMainWindow):
         self.inference_panel.stop_button.setEnabled(False)
         self._update_uart_status("未連線")
         self._update_power_status("待命")
-
-    def _toggle_theme(self, checked: bool) -> None:
-        if checked != (self.theme_manager.current_theme.name == "dark"):
-            self.theme_manager.toggle()
-        self.theme_manager.apply(QApplication.instance())
+        self._update_machine_power_guard()
 
     def _refresh_serial_port_hint(self) -> None:
         ports = self.uart_service.available_ports()
@@ -224,6 +216,15 @@ class MainWindow(QMainWindow):
             self._update_power_status("命令未送出，請先確認 UART 連線")
 
     def _send_power_off(self) -> None:
+        if self.collection_running or self.inference_running:
+            QMessageBox.warning(
+                self,
+                "目前不能關閉機器",
+                "資料收集或推論執行中，請先停止目前流程，再關閉機器。",
+            )
+            self.logger.warning("已阻擋關閉機器命令：資料收集或推論仍在執行。")
+            return
+
         sent = self.uart_service.power_off()
         if sent:
             self._update_power_status("已送出關閉機器命令")
@@ -245,21 +246,26 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "無法開始", "資料收集目前無法啟動，請查看狀態訊息。")
 
     def _on_collection_state_changed(self, running: bool, dataset_dir: str) -> None:
+        self.collection_running = running
         self.collection_panel.start_button.setEnabled(not running)
         self.collection_panel.stop_button.setEnabled(running)
         self.hardware_panel.preview_button.setEnabled(not running)
         self.inference_panel.start_button.setEnabled(not running)
         self.collection_panel.duration_input.setEnabled(not running)
         self.collection_panel.interval_input.setEnabled(not running)
+        self._update_machine_power_guard()
         if dataset_dir:
             self.collection_panel.dataset_dir_label.setText(f"目前資料夾：{dataset_dir}")
         if running:
             self.collection_panel.progress_label.setText("收集狀態：執行中，正在等待下一次儲存")
         else:
             self.collection_panel.progress_label.setText("收集狀態：已停止")
+            self.collection_panel.clear_preview()
 
     def _on_collection_frame(self, frame) -> None:
-        display_frame = self._resize_frame_for_preview(frame, max_width=760)
+        if not self.collection_running:
+            return
+        display_frame = self._resize_frame_for_preview(frame, max_width=800)
         rgb_frame = cv2.cvtColor(display_frame, cv2.COLOR_BGR2RGB)
         height, width, channels = rgb_frame.shape
         bytes_per_line = channels * width
@@ -336,8 +342,20 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "無法開始", "推論目前無法啟動，請查看狀態訊息。")
 
     def _on_inference_state_changed(self, running: bool) -> None:
+        self.inference_running = running
         self.inference_panel.start_button.setEnabled(not running)
         self.inference_panel.stop_button.setEnabled(running)
+        self.collection_panel.start_button.setEnabled(not running)
+        self.hardware_panel.preview_button.setEnabled(not running)
+        self._update_machine_power_guard()
+
+    def _update_machine_power_guard(self) -> None:
+        busy = self.collection_running or self.inference_running
+        self.hardware_panel.stop_button.setEnabled(not busy)
+        if busy:
+            self.hardware_panel.stop_button.setToolTip("資料收集或推論中不可關閉機器。")
+        else:
+            self.hardware_panel.stop_button.setToolTip("")
 
     def _open_path(self, path: Path) -> None:
         path.mkdir(parents=True, exist_ok=True)

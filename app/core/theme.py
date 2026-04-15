@@ -21,6 +21,8 @@ class ThemePalette:
     subtle_hover: str
     input_bg: str
     danger: str
+    danger_bg: str
+    danger_hover: str
 
 
 LIGHT_THEME = ThemePalette(
@@ -38,6 +40,8 @@ LIGHT_THEME = ThemePalette(
     subtle_hover="#EEF4F8",
     input_bg="#FFFFFF",
     danger="#C2410C",
+    danger_bg="#FFF1F2",
+    danger_hover="#FFE4E6",
 )
 
 DARK_THEME = ThemePalette(
@@ -54,13 +58,15 @@ DARK_THEME = ThemePalette(
     accent_pressed="#0F766E",
     subtle_hover="#1E293B",
     input_bg="#0B1120",
-    danger="#FB923C",
+    danger="#FB7185",
+    danger_bg="#3A1A24",
+    danger_hover="#4A1F2B",
 )
 
 
 class ThemeManager:
     def __init__(self) -> None:
-        self.current_theme = LIGHT_THEME
+        self.current_theme = DARK_THEME
 
     def toggle(self) -> ThemePalette:
         self.current_theme = DARK_THEME if self.current_theme.name == "light" else LIGHT_THEME
@@ -73,7 +79,7 @@ class ThemeManager:
             QWidget {{
                 background-color: transparent;
                 color: {theme.text};
-                font-family: "SF Pro Text", "PingFang TC", "Noto Sans TC", "Helvetica Neue", "Arial";
+                font-family: "Noto Sans CJK TC", "Noto Sans TC", "Source Han Sans TW", "PingFang TC", "Microsoft JhengHei", "DejaVu Sans";
                 font-size: 14px;
             }}
             QMainWindow {{
@@ -193,7 +199,20 @@ class ThemeManager:
                 background-color: {theme.accent_pressed};
             }}
             QPushButton[danger="true"] {{
+                background-color: {theme.danger_bg};
+                border: 1px solid {theme.danger};
                 color: {theme.danger};
+            }}
+            QPushButton[danger="true"]:hover {{
+                background-color: {theme.danger_hover};
+            }}
+            QPushButton[danger="true"]:pressed {{
+                background-color: {theme.danger_bg};
+            }}
+            QPushButton:disabled {{
+                background-color: {theme.input_bg};
+                border: 1px solid {theme.border};
+                color: {theme.muted_text};
             }}
             QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox, QPlainTextEdit {{
                 background-color: {theme.input_bg};
@@ -201,6 +220,13 @@ class ThemeManager:
                 border-radius: 14px;
                 padding: 11px 12px;
                 selection-background-color: {theme.accent};
+            }}
+            QSpinBox::up-button,
+            QSpinBox::down-button,
+            QDoubleSpinBox::up-button,
+            QDoubleSpinBox::down-button {{
+                width: 0;
+                border: none;
             }}
             QComboBox::drop-down {{
                 border: none;
@@ -239,7 +265,7 @@ class ThemeManager:
                 border: none;
             }}
             QPlainTextEdit {{
-                font-family: "SF Mono", "Menlo", "Monaco", "Courier New";
+                font-family: "Noto Sans Mono CJK TC", "Noto Sans Mono", "DejaVu Sans Mono", "Menlo", "Monaco";
                 font-size: 12px;
             }}
             QScrollBar:vertical {{
