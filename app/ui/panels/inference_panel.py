@@ -20,12 +20,19 @@ class InferencePanel(QFrame):
 
     def _build_ui(self) -> None:
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(24, 24, 24, 24)
+        layout.setContentsMargins(28, 26, 28, 26)
         layout.setSpacing(18)
 
+        title_row = QHBoxLayout()
+        title_row.setSpacing(12)
+        step_badge = QLabel("03")
+        step_badge.setObjectName("stepBadge")
         title = QLabel("邊緣推論")
         title.setObjectName("sectionTitle")
-        layout.addWidget(title)
+        title_row.addWidget(step_badge)
+        title_row.addWidget(title)
+        title_row.addStretch()
+        layout.addLayout(title_row)
 
         summary = QLabel("支援 `.pt` 直接跑 YOLOv8，保留 `.hef` 介面，並內建 Mock 模式可先測流程。")
         summary.setObjectName("hintText")
@@ -33,6 +40,7 @@ class InferencePanel(QFrame):
         layout.addWidget(summary)
 
         model_row = QHBoxLayout()
+        model_row.setSpacing(12)
         self.model_combo = QComboBox()
         self.model_combo.setMinimumWidth(220)
         self.refresh_models_button = QPushButton("掃描模型")
@@ -40,13 +48,15 @@ class InferencePanel(QFrame):
         model_row.addWidget(self.refresh_models_button)
         layout.addLayout(model_row)
 
-        utility_row = QVBoxLayout()
-        utility_row.setSpacing(10)
+        utility_row = QHBoxLayout()
+        utility_row.setSpacing(12)
         self.open_model_dir_button = QPushButton("開啟模型資料夾")
         utility_row.addWidget(self.open_model_dir_button)
+        utility_row.addStretch()
         layout.addLayout(utility_row)
 
         action_row = QHBoxLayout()
+        action_row.setSpacing(12)
         self.start_button = QPushButton("開始推論")
         self.start_button.setProperty("primary", True)
         self.stop_button = QPushButton("停止推論")
@@ -64,7 +74,7 @@ class InferencePanel(QFrame):
         debug_layout.setSpacing(12)
 
         status_title = QLabel("系統狀態")
-        status_title.setObjectName("sectionTitle")
+        status_title.setObjectName("subsectionTitle")
         debug_layout.addWidget(status_title)
 
         self.status_log = QPlainTextEdit()

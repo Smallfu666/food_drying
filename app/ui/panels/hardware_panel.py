@@ -23,12 +23,19 @@ class HardwarePanel(QFrame):
 
     def _build_ui(self) -> None:
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(24, 24, 24, 24)
+        layout.setContentsMargins(28, 26, 28, 26)
         layout.setSpacing(18)
 
+        title_row = QHBoxLayout()
+        title_row.setSpacing(12)
+        step_badge = QLabel("01")
+        step_badge.setObjectName("stepBadge")
         title = QLabel("硬體控制")
         title.setObjectName("sectionTitle")
-        layout.addWidget(title)
+        title_row.addWidget(step_badge)
+        title_row.addWidget(title)
+        title_row.addStretch()
+        layout.addLayout(title_row)
 
         summary = QLabel("先控制機器電源，再進行資料收集與推論。")
         summary.setObjectName("hintText")
@@ -36,6 +43,7 @@ class HardwarePanel(QFrame):
         layout.addWidget(summary)
 
         dryer_row = QHBoxLayout()
+        dryer_row.setSpacing(12)
         self.start_button = QPushButton("開啟機器")
         self.start_button.setProperty("primary", True)
         self.stop_button = QPushButton("關閉機器")
@@ -45,7 +53,7 @@ class HardwarePanel(QFrame):
         layout.addLayout(dryer_row)
 
         self.power_status_label = QLabel("控制狀態：待命")
-        self.power_status_label.setObjectName("hintText")
+        self.power_status_label.setObjectName("statusChip")
         self.power_status_label.setWordWrap(True)
         layout.addWidget(self.power_status_label)
 
@@ -62,7 +70,7 @@ class HardwarePanel(QFrame):
         advanced_layout.setSpacing(14)
 
         uart_title = QLabel("UART 進階設定")
-        uart_title.setObjectName("sectionTitle")
+        uart_title.setObjectName("subsectionTitle")
         advanced_layout.addWidget(uart_title)
 
         uart_hint = QLabel(f"預設：{DEFAULT_SERIAL_PORT} / {SERIAL_BAUDRATE} {UART_FORMAT} / on-off")
@@ -91,7 +99,7 @@ class HardwarePanel(QFrame):
         advanced_layout.addLayout(button_row)
 
         fan_title = QLabel("風扇速度")
-        fan_title.setObjectName("sectionTitle")
+        fan_title.setObjectName("subsectionTitle")
         advanced_layout.addWidget(fan_title)
 
         fan_hint = QLabel("拖曳後放開滑桿，才會送出一次 PWM 指令。")
@@ -113,5 +121,3 @@ class HardwarePanel(QFrame):
         self.advanced_frame.setVisible(False)
         self.advanced_toggle.toggled.connect(self.advanced_frame.setVisible)
         layout.addWidget(self.advanced_frame)
-
-        layout.addStretch()

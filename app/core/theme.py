@@ -9,6 +9,7 @@ from PySide6.QtWidgets import QApplication
 class ThemePalette:
     name: str
     window: str
+    window_accent: str
     panel: str
     panel_alt: str
     text: str
@@ -25,6 +26,7 @@ class ThemePalette:
 LIGHT_THEME = ThemePalette(
     name="light",
     window="#F4F7FB",
+    window_accent="#E7F5EF",
     panel="#FFFFFF",
     panel_alt="#F8FAFC",
     text="#112033",
@@ -41,6 +43,7 @@ LIGHT_THEME = ThemePalette(
 DARK_THEME = ThemePalette(
     name="dark",
     window="#0F172A",
+    window_accent="#12312D",
     panel="#111827",
     panel_alt="#1E293B",
     text="#E5EEF8",
@@ -68,7 +71,7 @@ class ThemeManager:
         app.setStyleSheet(
             f"""
             QWidget {{
-                background-color: {theme.window};
+                background-color: transparent;
                 color: {theme.text};
                 font-family: "SF Pro Text", "PingFang TC", "Noto Sans TC", "Helvetica Neue", "Arial";
                 font-size: 14px;
@@ -78,30 +81,69 @@ class ThemeManager:
             }}
             QScrollArea#mainScrollArea {{
                 border: none;
-                background-color: {theme.window};
+                background: qlineargradient(
+                    x1: 0, y1: 0, x2: 1, y2: 1,
+                    stop: 0 {theme.window_accent},
+                    stop: 0.34 {theme.window},
+                    stop: 1 {theme.window}
+                );
             }}
             QScrollArea#mainScrollArea > QWidget > QWidget {{
-                background-color: {theme.window};
+                background-color: transparent;
+            }}
+            QWidget#contentColumn {{
+                background-color: transparent;
+            }}
+            QFrame#heroPanel {{
+                background-color: {theme.panel};
+                border: 1px solid {theme.border};
+                border-radius: 24px;
             }}
             QFrame#panel {{
                 background-color: {theme.panel};
                 border: 1px solid {theme.border};
-                border-radius: 18px;
+                border-radius: 22px;
             }}
             QFrame#topBar {{
                 background-color: transparent;
             }}
-            QLabel#titleLabel {{
-                font-size: 24px;
+            QLabel#heroBadge {{
+                background-color: {theme.panel_alt};
+                border: 1px solid {theme.border};
+                border-radius: 12px;
+                color: {theme.accent_pressed};
+                font-size: 12px;
                 font-weight: 700;
+                padding: 6px 10px;
+            }}
+            QLabel#stepBadge {{
+                background-color: {theme.accent};
+                border-radius: 14px;
+                color: white;
+                font-size: 12px;
+                font-weight: 800;
+                padding: 6px 10px;
+            }}
+            QLabel#titleLabel {{
+                font-size: 28px;
+                font-weight: 800;
             }}
             QLabel#sectionTitle {{
-                font-size: 18px;
-                font-weight: 700;
+                font-size: 20px;
+                font-weight: 800;
+            }}
+            QLabel#subsectionTitle {{
+                font-size: 15px;
+                font-weight: 800;
             }}
             QLabel#hintText {{
                 color: {theme.muted_text};
                 font-size: 12px;
+            }}
+            QLabel#fieldLabel {{
+                color: {theme.muted_text};
+                font-size: 12px;
+                font-weight: 700;
             }}
             QLabel#valueChip {{
                 background-color: {theme.panel_alt};
@@ -110,12 +152,27 @@ class ThemeManager:
                 padding: 6px 10px;
                 font-weight: 600;
             }}
+            QLabel#statusChip {{
+                background-color: {theme.panel_alt};
+                border: 1px solid {theme.border};
+                border-radius: 14px;
+                color: {theme.text};
+                padding: 10px 12px;
+                font-weight: 700;
+            }}
+            QLabel#cameraPreview {{
+                background-color: {theme.input_bg};
+                border: 1px solid {theme.border};
+                border-radius: 18px;
+                color: {theme.muted_text};
+                font-weight: 700;
+            }}
             QPushButton {{
                 background-color: {theme.panel_alt};
                 border: 1px solid {theme.border};
-                border-radius: 12px;
-                padding: 10px 14px;
-                font-weight: 600;
+                border-radius: 14px;
+                padding: 12px 16px;
+                font-weight: 700;
             }}
             QPushButton:hover {{
                 background-color: {theme.subtle_hover};
@@ -141,8 +198,8 @@ class ThemeManager:
             QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox, QPlainTextEdit {{
                 background-color: {theme.input_bg};
                 border: 1px solid {theme.border};
-                border-radius: 12px;
-                padding: 10px 12px;
+                border-radius: 14px;
+                padding: 11px 12px;
                 selection-background-color: {theme.accent};
             }}
             QComboBox::drop-down {{
