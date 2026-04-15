@@ -26,6 +26,7 @@ from app.services.camera_service import CameraService
 from app.services.collection_service import DataCollectionService
 from app.services.inference_service import InferenceService, ModelInfo
 from app.services.uart_service import UARTService
+from app.ui.camera_preview_window import CameraPreviewWindow
 from app.ui.panels.collection_panel import CollectionPanel
 from app.ui.panels.hardware_panel import HardwarePanel
 from app.ui.panels.inference_panel import InferencePanel
@@ -53,6 +54,7 @@ class MainWindow(QMainWindow):
         self.collection_service = DataCollectionService(self.camera_service, self.logger)
         self.inference_service = InferenceService(self.camera_service, self.logger)
         self.signals = MainWindowSignals()
+        self.preview_window: CameraPreviewWindow | None = None
 
         self._build_ui()
         self._bind_events()
@@ -160,14 +162,22 @@ class MainWindow(QMainWindow):
             self._update_power_status("未連線")
 
     def _toggle_preview(self) -> None:
-        if self.camera_service.preview_running():
-            self.camera_service.stop_preview()
+        if self.preview_window is not None:
+            self.preview_window.close()
             return
 
-        self.camera_service.start_preview(self.signals.preview_changed.emit)
+        self.preview_window = CameraPreviewWindow(self.camera_service, self.logger)
+        self.preview_window.closed.connect(lambda: self._on_preview_state_changed(False))
+        self.preview_window.closed.connect(self._clear_preview_window)
+        self.preview_window.show()
+        self.preview_window.start()
+        self._on_preview_state_changed(True)
 
     def _on_preview_state_changed(self, running: bool) -> None:
         self.hardware_panel.preview_button.setText("關閉相機預覽" if running else "開啟相機預覽")
+
+    def _clear_preview_window(self) -> None:
+        self.preview_window = None
 
     def _update_uart_status(self, text: str) -> None:
         self.hardware_panel.uart_status_label.setText(f"UART 狀態：{text}")
@@ -271,7 +281,8 @@ class MainWindow(QMainWindow):
             self.logger.error(f"無法開啟資料夾：{path.resolve()}")
 
     def closeEvent(self, event) -> None:  # noqa: N802
-        self.camera_service.stop_preview()
+        if self.preview_window is not None:
+            self.preview_window.close()
         self.collection_service.stop_collection()
         self.inference_service.stop_inference()
         self.uart_service.disconnect()
