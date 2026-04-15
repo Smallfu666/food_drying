@@ -78,22 +78,29 @@ class DataCollectionService:
 
         deadline = started_at + timedelta(hours=duration_hours)
         interval_seconds = interval_minutes * 60
+        next_capture_at = started_at
+        last_read_warning_at: datetime | None = None
         capture_index = 1
 
         try:
             while not self._stop_event.is_set() and datetime.now() <= deadline:
                 now = datetime.now()
-                hour_index = int((now - started_at).total_seconds() // 3600) + 1
-                hour_dir = self.current_dataset_dir / f"hour_{hour_index:02d}"
-                hour_dir.mkdir(parents=True, exist_ok=True)
-
                 ok, frame = session.read()
                 if not ok:
-                    self.logger.warning("資料收集讀取影像失敗，本輪跳過。")
-                else:
-                    if frame_callback:
-                        frame_callback(frame.copy())
+                    if last_read_warning_at is None or (now - last_read_warning_at).total_seconds() >= 5:
+                        self.logger.warning("資料收集讀取影像失敗，正在重試。")
+                        last_read_warning_at = now
+                    if self._stop_event.wait(0.1):
+                        break
+                    continue
 
+                if frame_callback:
+                    frame_callback(frame.copy())
+
+                if now >= next_capture_at:
+                    hour_index = int((now - started_at).total_seconds() // 3600) + 1
+                    hour_dir = self.current_dataset_dir / f"hour_{hour_index:02d}"
+                    hour_dir.mkdir(parents=True, exist_ok=True)
                     filename = hour_dir / f"capture_{now.strftime('%Y%m%d_%H%M%S')}_{capture_index:04d}.jpg"
                     success = cv2.imwrite(str(filename), frame)
                     if success:
@@ -104,9 +111,10 @@ class DataCollectionService:
                     else:
                         self.logger.error(f"儲存影像失敗：{filename}")
 
-                if datetime.now() + timedelta(seconds=interval_seconds) > deadline:
-                    break
-                if self._stop_event.wait(interval_seconds):
+                    while next_capture_at <= now:
+                        next_capture_at += timedelta(seconds=interval_seconds)
+
+                if self._stop_event.wait(0.05):
                     break
         finally:
             session.release()
