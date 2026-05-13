@@ -42,6 +42,7 @@ class MainWindowSignals(QObject):
     collection_frame = Signal(object)
     collection_progress = Signal(int, str, str)
     inference_changed = Signal(bool)
+    uart_status_received = Signal(dict)
 
 
 class MainWindow(QMainWindow):
