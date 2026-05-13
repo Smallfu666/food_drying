@@ -95,7 +95,12 @@ class DataCollectionService:
                     continue
 
                 if frame_callback:
-                    frame_callback(frame.copy())
+                    # 在 RPi 上，預先在背景執行緒縮圖能大幅提高效能
+                    h, w = frame.shape[:2]
+                    preview_w = 800
+                    preview_h = int(h * (preview_w / w))
+                    preview_frame = cv2.resize(frame, (preview_w, preview_h))
+                    frame_callback(preview_frame)
 
                 if now >= next_capture_at:
                     hour_index = int((now - started_at).total_seconds() // 3600) + 1
