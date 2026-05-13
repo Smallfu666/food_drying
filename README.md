@@ -3,7 +3,7 @@
 這是一個使用 `PySide6 + Python` 開發的原生桌面 GUI，目標是在 Raspberry Pi 5 上作為果乾教學系統的中央控制台，整合：
 
 - 相機預覽
-- MCU / UART 控制
+- MCU / UART 控制 (通訊協議 V1.2)
 - 資料收集
 - YOLOv8 本地推論
 - 模型資料夾管理
@@ -17,7 +17,9 @@
 - PySide6 pop-out 相機預覽視窗
 - 背景執行緒資料收集，並在資料收集區內顯示固定尺寸即時相機畫面
 - 依小時切分的資料集輸出結構
-- UART `on` / `off` / PWM 控制
+- UART `ON` / `STOP` / `PAUSE` 控制
+- 支援 `SETTEMP` (設定溫度) 與 `SETTIME` (設定時間) 指令
+- 即時解析並顯示來自 Wio Terminal 的 JSON 格式感測器數據 (溫度、濕度)
 - 掃描 `models/` 內的 `.pt` 與未來 `.hef`
 - 內建 `Mock` 推論模式，沒有模型也能先測完整流程
 
@@ -98,60 +100,45 @@ uv sync --extra yolo
 
 ## 如何使用
 
-### 1. 硬體控制
+### 1. 硬體控制 (通訊協議 V1.2)
 
-- `開啟機器`：送出 `on`
-- `關閉機器`：送出 `off`
+- `啟動機器 (ON)`：送出 `ON` 開始運作
+- `暫停機器 (PAUSE)`：送出 `PAUSE` 暫停運作並保持時間
+- `停止歸零 (STOP)`：送出 `STOP` 停止機器並將時間歸零
+- `設定溫度`：在進階面板設定乾燥溫度 (送出 `SETTEMPxx`)
+- `設定時間`：在進階面板設定乾燥分鐘數 (送出 `SETTIMExxxx`)
+- `感測器狀態`：介面會即時顯示解析自 UART 的箱體溫度與濕度
 - `開啟獨立相機預覽`：開啟 PySide6 預覽視窗，檢查鏡頭角度與位置
-- `顯示 UART / 風扇進階設定`：展開 UART 連線、掃描序列埠與風扇 PWM 控制
 
-UART 目前以「命令成功送出」作為主要成功條件；設備若沒有回傳字串，也可能屬於正常行為。
+UART 會自動解析 JSON 格式的回傳數據，並將 16 進位數值轉換為易讀的攝氏溫度與百分比濕度。
 
 防呆規則：
 
-- 資料收集執行中，不可按 `關閉機器`
-- 推論執行中，不可按 `關閉機器`
-- 需要先停止資料收集或推論，才能送出 `off`
+- 資料收集執行中，不可按 `停止歸零`
+- 推論執行中，不可按 `停止歸零`
+- 需要先停止資料收集或推論，才能送出 `STOP`
 
 ### UART 實機使用方式
 
 RPi 5 目前採用：
 
 - Port: `/dev/ttyAMA0`
-- Baudrate: `9600`
+- Baudrate: `115200`
 - Format: `8N1`
-- Commands: `on` / `off`
+- Protocol Version: `V1.2`
 
 接線方式：
 
-- RPi Pin `6` -> 對方 `GND`
-- RPi Pin `8` -> 對方 `RX`
-- RPi Pin `10` -> 對方 `TX`
+- RPi Pin `6` -> Wio Terminal `GND`
+- RPi Pin `8` -> Wio Terminal `RX`
+- RPi Pin `10` -> Wio Terminal `TX`
 
 在 GUI 中：
 
 1. 將序列埠設為 `/dev/ttyAMA0`
 2. 點 `連線 UART`
-3. 點 `開啟機器` 或 `關閉機器`
-
-如果只是要先在終端測試 UART，可使用：
-
-```bash
-./.venv/bin/python scripts/uart_probe.py --port /dev/ttyAMA0 --command on
-./.venv/bin/python scripts/uart_probe.py --port /dev/ttyAMA0 --command off
-```
-
-如果設備需要換行，可再試：
-
-```bash
-./.venv/bin/python scripts/uart_probe.py --port /dev/ttyAMA0 --command on --newline
-```
-
-如果你要把「沒有回應」也視為失敗，再加：
-
-```bash
-./.venv/bin/python scripts/uart_probe.py --port /dev/ttyAMA0 --command on --require-response
-```
+3. 使用 `啟動`、`暫停` 或 `停止` 按鈕控制機器
+4. 在「參數進階設定」中調整溫度與時間並按下設定鈕
 
 ### 2. 資料收集
 
@@ -193,17 +180,11 @@ food_drying/
     best.pt
 ```
 
-也就是放在：
-
-[`/Users/nick/Documents/projects/food_drying/models`](/Users/nick/Documents/projects/food_drying/models)
-
 之後回到 GUI：
 
 1. 按 `掃描模型`
 2. 在下拉選單選擇你剛放進去的 `.pt`
 3. 按 `開始推論`
-
-如果 AI Maker 下載下來的是壓縮檔，先解壓縮，再把裡面的 `.pt` 模型檔放進 `models/`。
 
 ## 沒有模型時如何測試
 
