@@ -300,9 +300,8 @@ class MainWindow(QMainWindow):
     def _on_collection_frame(self, frame) -> None:
         if not self.collection_running:
             return
-        
-        # 影像已經在背景執行緒縮放過，這裡直接轉換並顯示
-        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        display_frame = self._resize_frame_for_preview(frame, max_width=800)
+        rgb_frame = cv2.cvtColor(display_frame, cv2.COLOR_BGR2RGB)
         height, width, channels = rgb_frame.shape
         bytes_per_line = channels * width
         image = QImage(
