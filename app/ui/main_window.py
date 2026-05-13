@@ -142,16 +142,16 @@ class MainWindow(QMainWindow):
         self.signals.collection_frame.connect(self._on_collection_frame)
         self.signals.collection_progress.connect(self._on_collection_progress)
         self.signals.inference_changed.connect(self._on_inference_state_changed)
+        self.signals.uart_status_received.connect(self._on_uart_status_received)
 
         self.hardware_panel.preview_button.clicked.connect(self._toggle_preview)
         self.hardware_panel.connect_button.clicked.connect(self._connect_uart)
         self.hardware_panel.refresh_ports_button.clicked.connect(self._refresh_serial_port_hint)
         self.hardware_panel.start_button.clicked.connect(self._send_power_on)
-        self.hardware_panel.stop_button.clicked.connect(self._send_power_off)
-        self.hardware_panel.fan_slider.valueChanged.connect(
-            lambda value: self.hardware_panel.fan_value_label.setText(str(value))
-        )
-        self.hardware_panel.fan_slider.sliderReleased.connect(self._send_fan_pwm)
+        self.hardware_panel.pause_button.clicked.connect(self._send_pause)
+        self.hardware_panel.stop_button.clicked.connect(self._send_stop)
+        self.hardware_panel.set_temp_button.clicked.connect(self._send_set_temp)
+        self.hardware_panel.set_time_button.clicked.connect(self._send_set_time)
 
         self.collection_panel.start_button.clicked.connect(self._start_collection)
         self.collection_panel.stop_button.clicked.connect(self.collection_service.stop_collection)
