@@ -215,28 +215,58 @@ class MainWindow(QMainWindow):
     def _send_power_on(self) -> None:
         sent = self.uart_service.power_on()
         if sent:
-            self._update_power_status("已送出開啟機器命令")
+            self._update_power_status("已送出啟動 (ON) 命令")
         else:
             self._update_power_status("命令未送出，請先確認 UART 連線")
 
-    def _send_power_off(self) -> None:
+    def _send_pause(self) -> None:
+        sent = self.uart_service.pause()
+        if sent:
+            self._update_power_status("已送出暫停 (PAUSE) 命令")
+
+    def _send_stop(self) -> None:
         if self.collection_running or self.inference_running:
             QMessageBox.warning(
                 self,
                 "目前不能關閉機器",
                 "資料收集或推論執行中，請先停止目前流程，再關閉機器。",
             )
-            self.logger.warning("已阻擋關閉機器命令：資料收集或推論仍在執行。")
+            self.logger.warning("已阻擋停止機器命令：資料收集或推論仍在執行。")
             return
 
-        sent = self.uart_service.power_off()
+        sent = self.uart_service.stop()
         if sent:
-            self._update_power_status("已送出關閉機器命令")
+            self._update_power_status("已送出停止歸零 (STOP) 命令")
         else:
             self._update_power_status("命令未送出，請先確認 UART 連線")
 
-    def _send_fan_pwm(self) -> None:
-        self.uart_service.send_fan_pwm(self.hardware_panel.fan_slider.value())
+    def _send_set_temp(self) -> None:
+        temp = self.hardware_panel.temp_input.value()
+        self.uart_service.set_temperature(temp)
+
+    def _send_set_time(self) -> None:
+        minutes = self.hardware_panel.time_input.value()
+        self.uart_service.set_time(minutes)
+
+    def _on_uart_status_received(self, status: dict) -> None:
+        # 簡單解析通訊協議 V1.2 的 Data 欄位
+        # Data: 0267010c0268911267010c2267010b
+        data_str = status.get("data", "")
+        if len(data_str) >= 20:
+            try:
+                # 0267010c -> 箱體溫度 010c(hex) = 268 / 10 = 26.8
+                temp_hex = data_str[4:8]
+                temp_val = int(temp_hex, 16) / 10.0
+                
+                # 026891 -> 箱體濕度 91(hex) = 145 / 2 = 72.5
+                humidity_hex = data_str[12:14]
+                humidity_val = int(humidity_hex, 16) / 2.0
+                
+                self.hardware_panel.sensor_data_label.setText(
+                    f"箱體溫度：{temp_val:.1f} ℃ | 濕度：{humidity_val:.1f} %"
+                )
+            except Exception:
+                pass
 
     def _start_collection(self) -> None:
         started = self.collection_service.start_collection(

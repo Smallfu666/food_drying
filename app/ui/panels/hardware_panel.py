@@ -44,11 +44,13 @@ class HardwarePanel(QFrame):
 
         dryer_row = QHBoxLayout()
         dryer_row.setSpacing(12)
-        self.start_button = QPushButton("開啟機器")
+        self.start_button = QPushButton("啟動機器 (ON)")
         self.start_button.setProperty("primary", True)
-        self.stop_button = QPushButton("關閉機器")
+        self.pause_button = QPushButton("暫停機器 (PAUSE)")
+        self.stop_button = QPushButton("停止歸零 (STOP)")
         self.stop_button.setProperty("danger", True)
         dryer_row.addWidget(self.start_button)
+        dryer_row.addWidget(self.pause_button)
         dryer_row.addWidget(self.stop_button)
         layout.addLayout(dryer_row)
 
@@ -57,10 +59,15 @@ class HardwarePanel(QFrame):
         self.power_status_label.setWordWrap(True)
         layout.addWidget(self.power_status_label)
 
+        # 傳感器數據顯示
+        self.sensor_data_label = QLabel("箱體溫度：-- ℃ | 濕度：-- %")
+        self.sensor_data_label.setObjectName("hintText")
+        layout.addWidget(self.sensor_data_label)
+
         self.preview_button = QPushButton("開啟獨立相機預覽")
         layout.addWidget(self.preview_button)
 
-        self.advanced_toggle = QCheckBox("顯示 UART / 風扇進階設定")
+        self.advanced_toggle = QCheckBox("顯示 UART / 參數進階設定")
         layout.addWidget(self.advanced_toggle)
 
         self.advanced_frame = QFrame()
@@ -73,7 +80,7 @@ class HardwarePanel(QFrame):
         uart_title.setObjectName("subsectionTitle")
         advanced_layout.addWidget(uart_title)
 
-        uart_hint = QLabel(f"預設：{DEFAULT_SERIAL_PORT} / {SERIAL_BAUDRATE} {UART_FORMAT} / on-off")
+        uart_hint = QLabel(f"預設：{DEFAULT_SERIAL_PORT} / {SERIAL_BAUDRATE} {UART_FORMAT}")
         uart_hint.setObjectName("hintText")
         uart_hint.setWordWrap(True)
         advanced_layout.addWidget(uart_hint)
@@ -98,25 +105,32 @@ class HardwarePanel(QFrame):
         button_row.addWidget(self.refresh_ports_button)
         advanced_layout.addLayout(button_row)
 
-        fan_title = QLabel("風扇速度")
-        fan_title.setObjectName("subsectionTitle")
-        advanced_layout.addWidget(fan_title)
+        param_title = QLabel("乾燥參數設定")
+        param_title.setObjectName("subsectionTitle")
+        advanced_layout.addWidget(param_title)
 
-        fan_hint = QLabel("拖曳後放開滑桿，才會送出一次 PWM 指令。")
-        fan_hint.setObjectName("hintText")
-        fan_hint.setWordWrap(True)
-        advanced_layout.addWidget(fan_hint)
+        temp_row = QHBoxLayout()
+        temp_label = QLabel("設定溫度 (℃)")
+        temp_row.addWidget(temp_label)
+        from PySide6.QtWidgets import QSpinBox
+        self.temp_input = QSpinBox()
+        self.temp_input.setRange(20, 80)
+        self.temp_input.setValue(50)
+        temp_row.addWidget(self.temp_input)
+        self.set_temp_button = QPushButton("設定溫度")
+        temp_row.addWidget(self.set_temp_button)
+        advanced_layout.addLayout(temp_row)
 
-        fan_row = QHBoxLayout()
-        self.fan_slider = QSlider(Qt.Orientation.Horizontal)
-        self.fan_slider.setRange(0, 100)
-        self.fan_slider.setValue(50)
-        fan_row.addWidget(self.fan_slider)
-
-        self.fan_value_label = QLabel("50")
-        self.fan_value_label.setObjectName("valueChip")
-        fan_row.addWidget(self.fan_value_label)
-        advanced_layout.addLayout(fan_row)
+        time_row = QHBoxLayout()
+        time_label = QLabel("設定時間 (分鐘)")
+        time_row.addWidget(time_label)
+        self.time_input = QSpinBox()
+        self.time_input.setRange(1, 9999)
+        self.time_input.setValue(60)
+        time_row.addWidget(self.time_input)
+        self.set_time_button = QPushButton("設定時間")
+        time_row.addWidget(self.set_time_button)
+        advanced_layout.addLayout(time_row)
 
         self.advanced_frame.setVisible(False)
         self.advanced_toggle.toggled.connect(self.advanced_frame.setVisible)
